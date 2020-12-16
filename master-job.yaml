@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: kube-bench-master
+  name: kube-bench
 spec:
   template:
     spec:
@@ -10,27 +10,22 @@ spec:
       containers:
         - name: kube-bench
           image: aquasec/kube-bench:latest
-          command: ["kube-bench", "master"]
+          command: ["kube-bench", "--benchmark", "gke-1.0", "run", "--targets", "node,policies,managedservices"]
           volumeMounts:
-            - name: var-lib-etcd
-              mountPath: /var/lib/etcd
-              readOnly: true
+            - name: var-lib-kubelet
+              mountPath: /var/lib/kubelet
+            - name: etc-systemd
+              mountPath: /etc/systemd
             - name: etc-kubernetes
               mountPath: /etc/kubernetes
-              readOnly: true
-              # /usr/local/mount-from-host/bin is mounted to access kubectl / kubelet, for auto-detecting the Kubernetes version.
-              # You can omit this mount if you specify --version as part of the command.
-            - name: usr-bin
-              mountPath: /usr/local/mount-from-host/bin
-              readOnly: true
       restartPolicy: Never
       volumes:
-        - name: var-lib-etcd
+        - name: var-lib-kubelet
           hostPath:
-            path: "/var/lib/etcd"
+            path: "/var/lib/kubelet"
+        - name: etc-systemd
+          hostPath:
+            path: "/etc/systemd"
         - name: etc-kubernetes
           hostPath:
             path: "/etc/kubernetes"
-        - name: usr-bin
-          hostPath:
-            path: "/usr/bin"
